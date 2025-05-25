@@ -1,20 +1,23 @@
 # Author: ChatGPT/Casey Betts
 # Date: 2025-05-23
-# This script prepares a CSV for use in LSTM model training
+# This script prepares a CSV for use in LSTM model, creates the LSTM and evaluates the accuracy of the model 
 
 # Import necessary libraries
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
-import numpy as np
 import torch
 from torch.utils.data import Dataset
+from sklearn.metrics import accuracy_score, f1_score, classification_report
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader
+from Data_Verification import verify_dataset
+
 
 # Read the CSV file
 df = pd.read_csv(r"mlops-coding-challenge-EXTERNAL\mlops-coding-challenge-EXTERNAL\data\train.csv")
-# df["timestamp"] = pd.to_datetime(df["timestamp"])
-# df = df.sort_values(["track_id", "timestamp"])
-
 
 # Turn sensor_id into an integer index (for embedding):
 sensor_encoder = LabelEncoder()
@@ -28,8 +31,7 @@ df[["latitude", "longitude", "altitude", "radiometric_intensity"]] = scaler.fit_
 )
 
 # Window the sequence data:
-
-seq_len = 1000
+seq_len = 100
 
 def make_windows(group_df, seq_len):
     numeric_feats = group_df[["latitude", "longitude", "altitude", "radiometric_intensity"]].to_numpy()
@@ -52,8 +54,6 @@ windows = []
 for _, group in df.groupby("track_id"):
     windows.extend(make_windows(group, seq_len))
 
-
-
 # Convert to PyTorch Dataset
 class TimeSeriesDataset(Dataset):
     def __init__(self, windows, seq_len):
@@ -75,11 +75,6 @@ class TimeSeriesDataset(Dataset):
 # Wrap in DataLoader
 dataset = TimeSeriesDataset(windows, seq_len)
 loader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True)
-
-
-# Step 3 PyTorch Model Code
-
-import torch.nn as nn
 
 class LSTMTimeStepClassifier(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, num_classes, sensor_vocab_size=None, sensor_embed_dim=0):
@@ -117,14 +112,11 @@ class LSTMTimeStepClassifier(nn.Module):
         logits = self.classifier(lstm_out)  # (batch, seq_len, num_classes)
         return logits
 
-# Verify the dataset is working
-# Check 3 Try Forward Pass
-
 model = LSTMTimeStepClassifier(
     input_size=4,                # num numerical features
     hidden_size=64,
     num_layers=1,
-    num_classes=3,               # reentry_phase classes
+    num_classes=2,               # reentry_phase classes
     sensor_vocab_size=20,
     sensor_embed_dim=4
 )
@@ -135,63 +127,100 @@ with torch.no_grad():
     logits = model(x_numeric, x_sensor)               # Forward pass
     y_pred = torch.argmax(logits, dim=-1)             # Predicted classes
 
-
-# Verify the dataset is working
-def verify_dataset(dataset, loader, windows):
-    # Check 2: Check Sample Values 
-    for x_numeric, x_sensor, y in loader:
-        print("x_numeric shape:", x_numeric.shape)  # (batch_size, seq_len, num_features)
-        print("x_sensor shape:", x_sensor.shape)    # (batch_size, seq_len)
-        print("y shape:", y.shape)                  # (batch_size, seq_len)
-        break
-
-    x_numeric, x_sensor, y = dataset[0]
-    print("x_numeric[0]:", x_numeric[0])  # Should be a 4D vector
-    print("x_sensor[0]:", x_sensor[0])    # Should be an integer
-    print("y[0]:", y[0])                  # Should be a class index
-
-    # Check 4: Visual Spot Check
-    import matplotlib.pyplot as plt
-
-    seq_index = 0  # First sequence in the batch
-
-    true_seq = y_true[seq_index].cpu().numpy()
-    pred_seq = y_pred[seq_index].cpu().numpy()
-
-
-    plt.figure(figsize=(12, 4))
-    plt.plot(true_seq, label='True Labels', marker='o', alpha=0.7)
-    plt.plot(pred_seq, label='Predicted Labels', linestyle='--', marker='x', alpha=0.7)
-    plt.xlabel("Time Step")
-    plt.ylabel("Class Index")
-    plt.title("Per-step Classification for One Sequence")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-
-    # Check 6: Distribution Checks
-
-    all_labels = np.concatenate([w["y"] for w in windows])
-    unique, counts = np.unique(all_labels, return_counts=True)
-    print("Label distribution:", dict(zip(unique, counts)))
-# verify_dataset(dataset, loader, windows)
-
-import torch.optim as optim
+# (Optional) Checks to ensure dataset is compatable with LSTM
+# verify_dataset(dataset, loader, windows, y_true, y_pred)
 
 # Define loss and optimizer
-loss_fn = nn.CrossEntropyLoss()
+class_weights = torch.tensor([1.0, 5.0])
+loss_fn = nn.CrossEntropyLoss(weight=class_weights)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-model.train()
+# Define model trainer
+def train(model, loader, loss_fn, optimizer, num_epochs=2):
+    model.train()
 
-for x_numeric, x_sensor, y in train_loader:
-    optimizer.zero_grad()
-    logits = model(x_numeric, x_sensor)  # [batch_size, seq_len, num_classes]
+    for epoch in range(num_epochs):
+        total_loss = 0.0
 
-    loss = loss_fn(logits.view(-1, logits.shape[-1]), y.view(-1))  # reshape
-    loss.backward()
-    optimizer.step()
+        for batch in loader:
+            x_numeric, x_sensor, y = batch
+
+            optimizer.zero_grad()
+
+            logits = model(x_numeric, x_sensor)  # [B, T, C]
+            loss = loss_fn(logits.view(-1, logits.shape[-1]), y.view(-1))  # reshape
+
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+
+        avg_loss = total_loss / len(loader)
+        # print(f"Epoch {epoch+1}/{num_epochs} - Loss: {avg_loss:.4f}")
+
+# Train LSTM
+train(model, loader, loss_fn, optimizer, num_epochs=10)
+
+# Define SequenceDataset
+class SequenceDataset(Dataset):
+    def __init__(self, windows):
+        self.windows = windows
+
+    def __len__(self):
+        return len(self.windows)
+
+    def __getitem__(self, idx):
+        window = self.windows[idx]
+        x_numeric = torch.tensor(window["x_numeric"], dtype=torch.float32)   # shape: [T, num_features]
+        x_sensor  = torch.tensor(window["x_sensor"], dtype=torch.long)       # shape: [T]
+        y         = torch.tensor(window["y"], dtype=torch.long)              # shape: [T]
+        return x_numeric, x_sensor, y
+
+
+# Random but reproducible split
+train_windows, val_windows = train_test_split(windows, test_size=0.2, random_state=42)
+
+train_dataset = SequenceDataset(train_windows)
+val_dataset = SequenceDataset(val_windows)
+
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32)
+
+
+# Define evaluation function
+def evaluate(model, val_loader):
+    model.eval()
+    all_preds = []
+    all_labels = []
+
+    with torch.no_grad():
+        for batch in val_loader:
+            x_numeric, x_sensor, y = batch
+
+            logits = model(x_numeric, x_sensor)
+            preds = torch.argmax(logits, dim=-1)
+
+            all_preds.append(preds.cpu())
+            all_labels.append(y.cpu())
+
+    all_preds = torch.cat(all_preds).view(-1).numpy()
+    all_labels = torch.cat(all_labels).view(-1).numpy()
+
+    acc = accuracy_score(all_labels, all_preds)
+    f1 = f1_score(all_labels, all_preds, average='binary')  # Use 'macro' for >2 classes
+
+    print(f"Validation Accuracy: {acc:.4f}")
+    print(f"Validation F1 Score: {f1:.4f}")
+    print(classification_report(all_labels, all_preds, digits=4))
+
+    return acc, f1
+
+# Run evaluation
+evaluate(model, val_loader)
+
+
+
+
 
 
 
