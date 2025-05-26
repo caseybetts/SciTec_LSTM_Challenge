@@ -11,5 +11,9 @@ CONFIG = {
     "random_seed": 42,
     "train_csv": "mlops-coding-challenge-EXTERNAL/mlops-coding-challenge-EXTERNAL/data/train.csv",
     "val_split": 0.2,
-    "model_save_path": "best_model.pt"
+    "model_save_path": "best_model.pt",
+    "weight_decay":1e-5,
+    "patience":3,
+    "lower":0.01,
+    "upper":0.99
 }

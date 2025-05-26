@@ -11,16 +11,34 @@ def load_and_preprocess_data(config):
     df = pd.read_csv(config["train_csv"])
     sensor_encoder = LabelEncoder()
     df["sensor_idx"] = sensor_encoder.fit_transform(df["sensor_id"])
+
+    numeric_cols = ["latitude", "longitude", "altitude", "radiometric_intensity"]
+
+    # Outlier clipping
+    for col in numeric_cols:
+        low = df[col].quantile(config["lower"])
+        high = df[col].quantile(config["upper"])
+        df[col] = df[col].clip(low, high)
+
+    # Smoothing
+    df = smooth_features(df, numeric_cols, window=3)
+
+    # Scaling
     scaler = StandardScaler()
-    df[["latitude", "longitude", "altitude", "radiometric_intensity"]] = scaler.fit_transform(
-        df[["latitude", "longitude", "altitude", "radiometric_intensity"]]
-    )
+    df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+
     # Save encoder and scaler for inference
     with open("sensor_encoder.pkl", "wb") as f:
         pickle.dump(sensor_encoder, f)
     with open("scaler.pkl", "wb") as f:
         pickle.dump(scaler, f)
     return df, sensor_encoder, scaler
+
+def smooth_features(df, columns, window=3):
+    df = df.sort_values(['track_id', 'timestamp'])
+    for col in columns:
+        df[col] = df.groupby('track_id')[col].transform(lambda x: x.rolling(window, min_periods=1, center=True).mean())
+    return df
 
 def make_windows(group_df, seq_len):
     numeric_feats = group_df[["latitude", "longitude", "altitude", "radiometric_intensity"]].to_numpy()

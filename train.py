@@ -46,8 +46,9 @@ def train():
     ).to(device)
     class_weights = torch.tensor(CONFIG["class_weights"]).to(device)
     loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)
-    optimizer = torch.optim.Adam(model.parameters(), lr=CONFIG["learning_rate"])
+    optimizer = torch.optim.Adam(model.parameters(), lr=CONFIG["learning_rate"], weight_decay=CONFIG["weight_decay"])
     best_f1 = 0
+    epochs_not_improved = 0
     for epoch in range(CONFIG["num_epochs"]):
         model.train()
         total_loss = 0.0
@@ -66,6 +67,14 @@ def train():
             best_f1 = val_f1
             torch.save(model.state_dict(), CONFIG["model_save_path"])
             print("Best model saved.")
+            epochs_not_improved = 0
+        else:
+            epochs_not_improved += 1
+            print(f"No improvment for {epochs_not_improved} epoch(s).")
+            if epochs_not_improved >= CONFIG["patience"]:
+                print("Early stopping triggered.")
+                break
+
     print("Training complete.")
 
 if __name__ == "__main__":
