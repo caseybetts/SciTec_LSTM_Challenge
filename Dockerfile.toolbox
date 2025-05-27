@@ -1,0 +1,43 @@
+# Dockerfile optimized for Docker Toolbox
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Install system dependencies (minimal for Docker Toolbox)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python packages
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY config.py .
+COPY model.py .
+COPY utils.py .
+COPY train.py .
+COPY inference.py .
+
+# Copy data processing (use docker version if available)
+COPY data_docker.py ./data.py 2>/dev/null || COPY data.py .
+
+# Create necessary directories
+RUN mkdir -p /app/data /app/models /app/outputs
+
+# Make scripts executable
+RUN chmod +x *.py
+
+# Default command
+CMD ["python", "train.py"]

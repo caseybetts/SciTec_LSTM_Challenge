@@ -1,0 +1,80 @@
+2025-05-27 15:16:39,222 INFO __main__: Starting training process.
+2025-05-27 15:16:39,222 INFO utils: Setting random seed to 42
+2025-05-27 15:16:39,222 INFO __main__: Loading and preprocessing data.
+2025-05-27 15:16:39,222 INFO data: Loading data from data/train.csv
+2025-05-27 15:16:39,755 INFO data: Data loaded and preprocessed.
+2025-05-27 15:16:39,946 INFO __main__: Model instantiated.
+2025-05-27 15:16:43,571 INFO __main__: Epoch 1 started.
+2025-05-27 15:16:44,534 INFO __main__: Epoch 1 completed. Loss: 0.5315
+2025-05-27 15:16:44,694 INFO __main__: Best model saved.
+2025-05-27 15:16:44,694 INFO __main__: Epoch 2 started.
+2025-05-27 15:16:45,567 INFO __main__: Epoch 2 completed. Loss: 0.1629
+2025-05-27 15:16:45,728 INFO __main__: Best model saved.
+2025-05-27 15:16:45,729 INFO __main__: Epoch 3 started.
+2025-05-27 15:16:47,231 INFO __main__: Epoch 3 completed. Loss: 0.0665
+2025-05-27 15:16:47,380 INFO __main__: Best model saved.
+2025-05-27 15:16:47,389 INFO __main__: Epoch 4 started.
+2025-05-27 15:16:48,406 INFO __main__: Epoch 4 completed. Loss: 0.0468
+2025-05-27 15:16:48,548 INFO __main__: No improvement for 1 epoch(s).
+2025-05-27 15:16:48,549 INFO __main__: Epoch 5 started.
+2025-05-27 15:16:49,622 INFO __main__: Epoch 5 completed. Loss: 0.0410
+2025-05-27 15:16:49,793 INFO __main__: No improvement for 2 epoch(s).
+2025-05-27 15:16:49,793 INFO __main__: Epoch 6 started.
+2025-05-27 15:16:50,840 INFO __main__: Epoch 6 completed. Loss: 0.0374
+2025-05-27 15:16:50,975 INFO __main__: Best model saved.
+2025-05-27 15:16:50,976 INFO __main__: Epoch 7 started.
+2025-05-27 15:16:52,058 INFO __main__: Epoch 7 completed. Loss: 0.0366
+2025-05-27 15:16:52,262 INFO __main__: Best model saved.
+2025-05-27 15:16:52,275 INFO __main__: Epoch 8 started.
+2025-05-27 15:16:53,223 INFO __main__: Epoch 8 completed. Loss: 0.0346
+2025-05-27 15:16:53,349 INFO __main__: No improvement for 1 epoch(s).
+2025-05-27 15:16:53,350 INFO __main__: Epoch 9 started.
+2025-05-27 15:16:54,293 INFO __main__: Epoch 9 completed. Loss: 0.0326
+2025-05-27 15:16:54,428 INFO __main__: No improvement for 2 epoch(s).
+2025-05-27 15:16:54,429 INFO __main__: Epoch 10 started.
+2025-05-27 15:16:55,345 INFO __main__: Epoch 10 completed. Loss: 0.0332
+2025-05-27 15:16:55,511 INFO __main__: No improvement for 3 epoch(s).
+2025-05-27 15:16:55,511 INFO __main__: Early stopping triggered.
+2025-05-27 15:16:55,511 INFO __main__: Training complete.
+2025-05-27 15:44:38,296 INFO __main__: Starting training process.
+2025-05-27 15:44:38,297 INFO utils: Setting random seed to 42
+2025-05-27 15:44:38,299 INFO __main__: Loading and preprocessing data.
+2025-05-27 15:44:38,300 INFO data: Loading data from data/train.csv
+2025-05-27 15:44:38,889 INFO data: Data loaded and preprocessed.
+2025-05-27 15:44:39,027 INFO __main__: Evaluating baseline classifier on validation set...
+2025-05-27 15:44:39,064 INFO __main__: Baseline Validation Accuracy: 0.9184
+2025-05-27 15:44:39,064 INFO __main__: Baseline Validation F1 Score: 0.6880
+2025-05-27 15:44:39,099 INFO __main__: 
+              precision    recall  f1-score   support
+
+           0     0.9819    0.9259    0.9530     13689
+           1     0.5757    0.8547    0.6880      1611
+
+    accuracy                         0.9184     15300
+   macro avg     0.7788    0.8903    0.8205     15300
+weighted avg     0.9391    0.9184    0.9251     15300
+
+2025-05-27 15:44:39,102 INFO __main__: Model instantiated.
+2025-05-27 15:44:50,686 INFO __main__: Epoch 1 started.
+2025-05-27 15:44:51,398 INFO __main__: Epoch 1 completed. Loss: 0.6006
+2025-05-27 15:44:51,509 INFO __main__: Best model saved.
+2025-05-27 15:44:51,514 INFO __main__: Epoch 2 started.
+2025-05-27 15:44:52,288 INFO __main__: Epoch 2 completed. Loss: 0.2249
+2025-05-27 15:44:52,393 INFO __main__: Best model saved.
+2025-05-27 15:44:52,394 INFO __main__: Epoch 3 started.
+2025-05-27 15:44:53,039 INFO __main__: Epoch 3 completed. Loss: 0.0811
+2025-05-27 15:44:53,153 INFO __main__: Best model saved.
+2025-05-27 15:44:53,153 INFO __main__: Epoch 4 started.
+2025-05-27 15:44:53,934 INFO __main__: Epoch 4 completed. Loss: 0.0513
+2025-05-27 15:44:54,060 INFO __main__: Best model saved.
+2025-05-27 15:44:54,060 INFO __main__: Epoch 5 started.
+2025-05-27 15:44:55,331 INFO __main__: Epoch 5 completed. Loss: 0.0431
+2025-05-27 15:44:55,594 INFO __main__: No improvement for 1 epoch(s).
+2025-05-27 15:44:55,597 INFO __main__: Epoch 6 started.
+2025-05-27 15:44:56,540 INFO __main__: Epoch 6 completed. Loss: 0.0391
+2025-05-27 15:44:56,663 INFO __main__: No improvement for 2 epoch(s).
+2025-05-27 15:44:56,665 INFO __main__: Epoch 7 started.
+2025-05-27 15:44:57,625 INFO __main__: Epoch 7 completed. Loss: 0.0422
+2025-05-27 15:44:57,753 INFO __main__: No improvement for 3 epoch(s).
+2025-05-27 15:44:57,755 INFO __main__: Early stopping triggered.
+2025-05-27 15:44:57,755 INFO __main__: Training complete.
