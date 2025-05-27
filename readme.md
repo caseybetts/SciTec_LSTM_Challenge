@@ -1,72 +1,104 @@
-# Project: [Project Name]
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Model Architecture and Rationale](#model-architecture-and-rationale)
-3. [Data Preprocessing and Feature Engineering](#data-preprocessing-and-feature-engineering)
-4. [Scalability Considerations and Trade-offs](#scalability-considerations-and-trade-offs)
-5. [Running Locally](#running-locally)
-6. [Running in Minikube](#running-in-minikube)
-7. [Performance Comparison to Baseline](#performance-comparison-to-baseline)
-8. [Contributing](#contributing)
-9. [License](#license)
+# Time Series Classification for Reentry Phase Prediction
 
 ## Overview
 
-[Provide a brief overview of the project, including its purpose, key features, and any other relevant information.]
+This project implements a time series classification model to predict the reentry phase of an object based on sensor data. The model utilizes an LSTM network with sensor ID embeddings to effectively capture temporal dependencies and incorporate categorical information.
 
-## Model Architecture and Rationale
+## Table of Contents
 
-### Architecture
+1.  Model Architecture and Rationale
+2.  Data Preprocessing and Feature Engineering
+3.  Scalability Considerations and Trade-offs
+4.  Comparison to Baseline Performance
+5.  Dependencies
+6.  Usage
+    - Training
+    - Inference
+7.  File Descriptions
 
-- **Input Layer**: Description of the input data.
-- **Hidden Layers**: Description of the hidden layers, including their types (e.g., dense, convolutional, recurrent), activation functions, and any other relevant details.
-- **Output Layer**: Description of the output layer, including the type of output (e.g., classification, regression) and the activation function used.
+## 1. Model Architecture and Rationale
+
+### Model Architecture
+
+The model is an `LSTMTimeStepClassifier` built using PyTorch. It consists of the following components:
+
+- **Input Layer:** Takes two inputs:
+  - `x_numeric`: Numeric features (latitude, longitude, altitude, radiometric intensity) of shape `(batch_size, seq_len, input_size)` where `input_size` is 4.
+  - `x_sensor`: Sensor IDs, which are passed through an embedding layer, of shape `(batch_size, seq_len)`.
+- **Sensor ID Embedding:** A PyTorch embedding layer that maps sensor IDs to a dense vector representation. This allows the model to learn sensor-specific patterns. The embedding dimension is configurable (`sensor_embed_dim`).
+- **LSTM Layer:** A multi-layered LSTM network that processes the combined numeric features and sensor embeddings to capture temporal dependencies in the data. The number of layers (`num_layers`) and hidden state size (`hidden_size`) are configurable.
+- **Dropout:** Dropout layers are applied for regularization to prevent overfitting.
+- **Output Layer:** A fully connected linear layer that maps the LSTM output to the classification logits for each time step. The number of classes is 2 (reentry phase or not).
 
 ### Rationale
 
-- **Why this architecture?**: Explain the reasoning behind choosing this particular architecture, such as its suitability for the problem at hand, its ability to capture certain patterns in the data, or its efficiency in terms of computational resources.
-- **Alternatives considered**: Mention any alternative architectures that were considered and why they were not chosen.
+- **LSTMs for Time Series:** LSTMs are well-suited for time series data because they can learn long-range dependencies. In this problem, the reentry phase is likely determined by a sequence of changes in sensor readings over time (e.g., a sustained decrease in altitude).
+- **Sensor ID Embeddings:** Different sensors might have unique characteristics or biases. Embedding sensor IDs allows the model to learn these characteristics and improve accuracy.
+- **Time Step Classification:** The model predicts the reentry phase at each time step, providing a more granular understanding of when the transition occurs.
 
-## Data Preprocessing and Feature Engineering
+## 2. Data Preprocessing and Feature Engineering
 
-### Data Sources
+The `data.py` module handles data loading and preprocessing. The following steps are applied:
 
-- List the sources of the data used in the project.
+- **Loading:** The data is loaded from a CSV file using `pandas`.
+- **Sensor ID Encoding:** Sensor IDs (categorical) are encoded into numerical indices using `LabelEncoder`. This is necessary for the embedding layer. The encoder is saved to `sensor_encoder.pkl` for use during inference.
+- **Outlier Clipping:** Numeric features (latitude, longitude, altitude, radiometric intensity) have their values clipped to a specified range (defined by `lower` and `upper` quantiles in the config) to reduce the impact of extreme outliers.
+- **Smoothing:** A rolling mean smoothing is applied to the numeric features to reduce noise and highlight trends. A window size of 3 is used.
+- **Scaling:** Numeric features are standardized using `StandardScaler` to have zero mean and unit variance. This helps with model convergence. The scaler is saved to `scaler.pkl` for inference.
+- **Windowing:** The data is split into fixed-length sequences (windows) using a sliding window approach. Each window contains numeric features, sensor IDs, and corresponding labels. This is done by the `make_windows` and `create_windows` functions.
+- **Dataset Creation:** A `TimeSeriesDataset` class is defined using PyTorch's `Dataset` class to efficiently load and batch the windowed data during training and evaluation.
 
-### Preprocessing Steps
+## 3. Scalability Considerations and Trade-offs
 
-1. **Data Cleaning**: Describe the steps taken to clean the data, such as handling missing values, removing duplicates, and correcting errors.
-2. **Normalization/Standardization**: Explain how the data was normalized or standardized.
-3. **Encoding Categorical Variables**: Describe the method used to encode categorical variables (e.g., one-hot encoding, label encoding).
-4. **Splitting the Data**: Explain how the data was split into training, validation, and test sets.
+- **Sequence Length (`seq_len`):** Longer sequences capture more context but increase computational cost and memory usage. Shorter sequences are computationally cheaper but might miss long-term dependencies.
+- **Batch Size (`batch_size`):** Larger batch sizes can speed up training but require more memory. Smaller batch sizes can improve generalization but might slow down training.
+- **LSTM Hidden Size (`hidden_size`) and Number of Layers (`num_layers`):** Larger hidden sizes and more layers increase model capacity but also increase the risk of overfitting and require more computation.
+- **Sensor Embedding Dimension (`sensor_embed_dim`):** Larger embedding dimensions can capture more complex sensor-specific information but increase the number of model parameters.
+- **Data Size:** The code uses batching and windowing to handle potentially large datasets. However, very large datasets might require distributed training or more sophisticated data loading strategies.
+- **Hardware:** The code is written to utilize GPUs if available, which significantly speeds up training. For very large models or datasets, specialized hardware (e.g., TPUs) might be necessary.
+- **Inference Speed:** Inference speed is affected by the model size and sequence length. For real-time applications, model optimization techniques (e.g., quantization, pruning) might be needed.
 
-### Feature Engineering
+## 4. Comparison to Baseline Performance
 
-1. **Feature Selection**: Describe the process of selecting features, including any criteria used (e.g., correlation, mutual information).
-2. **Feature Creation**: Explain any new features that were created, such as interaction terms, polynomial features, or derived features from existing ones.
-3. **Feature Scaling**: Describe how features were scaled, if applicable.
+The `train.py` script includes a baseline model for comparison:
 
-## Scalability Considerations and Trade-offs
+- **Baseline Model:** The baseline model predicts the reentry phase based on a simple rule: if the altitude decreases consecutively for a certain number of time steps (30 in this case), the model predicts that the object is in the reentry phase.
 
-### Scalability
+- **Rationale:** This baseline captures a key characteristic of reentry – a sustained decrease in altitude. It provides a simple benchmark to assess the effectiveness of the LSTM model.
 
-- **Horizontal Scaling**: Discuss how the model can be scaled horizontally, such as by distributing the workload across multiple machines.
-- **Vertical Scaling**: Discuss how the model can be scaled vertically, such as by increasing the computational resources on a single machine.
+- **Evaluation:** The training script evaluates both the LSTM model and the baseline on the validation set, reporting accuracy and F1-score, along with a classification report. This allows for a quantitative comparison of their performance.
 
-### Trade-offs
+- **Expected Outcome:** The LSTM model is expected to outperform the baseline by learning more complex patterns and considering other sensor inputs in addition to altitude.
 
-- **Computational Resources**: Discuss the trade-off between computational resources and model performance.
-- **Model Complexity**: Discuss the trade-off between model complexity and interpretability.
-- **Training Time**: Discuss the trade-off between training time and model accuracy.
+## 5. Dependencies
 
-## Running Locally
+- Python 3.7+
+- PyTorch
+- Pandas
+- Scikit-learn
+- `config.py` (not provided, you'll need to create this with your configurations)
 
-### Prerequisites
+You can install the necessary packages using pip:
 
-- **Python 3.x**: Ensure you have Python 3.x installed.
-- **Dependencies**: Install the required dependencies using pip:
-  ```bash
-  pip install -r requirements.txt
-  ```
+```bash
+pip install torch pandas scikit-learn
+```
+
+## 6. Usage
+
+### Training
+
+To train the model, run the `train.py` script:
+
+```bash
+python train.py
+
+The script will:
+
+1. Load and preprocess the training data.
+2. Create training and validation datasets.
+3. Define the LSTM model.
+4. Train the model using the specified hyperparameters.
+5. Evaluate the model on the validation set.
+6. Save the best model weights to model.pth.
+```
