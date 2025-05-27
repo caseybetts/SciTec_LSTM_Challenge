@@ -3,8 +3,12 @@ import config
 import random
 import numpy as np
 import torch
+import logging
+
+logger = logging.getLogger(__name__)
 
 def set_seed(seed):
+    logger.info(f"Setting random seed to {seed}")
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

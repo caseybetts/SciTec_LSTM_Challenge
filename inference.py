@@ -6,8 +6,19 @@ from model import LSTMTimeStepClassifier
 from data import make_windows, TimeSeriesDataset
 from config import CONFIG
 import pickle
-import os
 import argparse
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s: %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 def load_encoder_scaler():
     # If you saved these during training, load them here.
@@ -34,6 +45,7 @@ def create_test_windows(df, seq_len):
     return windows
 
 def run_inference(input_csv, output_csv):
+    logger.info(f"Running inference on {input_csv}")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load encoders/scalers
@@ -76,7 +88,7 @@ def run_inference(input_csv, output_csv):
 
     # Save predictions to CSV
     pd.DataFrame({"prediction": all_preds}).to_csv(output_csv, index=False)
-    print(f"Predictions saved to {output_csv}")
+    logger.info(f"Predictions saved to {output_csv}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run LSTM inference on a CSV file.")

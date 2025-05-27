@@ -9,7 +9,7 @@ CONFIG = {
     "learning_rate": 1e-3,
     "class_weights": [1.0, 5.0],
     "random_seed": 42,
-    "train_csv": "data\train.csv",
+    "train_csv": "data/train.csv",
     "val_split": 0.2,
     "model_save_path": "best_model.pt",
     "weight_decay":1e-5,

@@ -6,8 +6,12 @@ from sklearn.model_selection import train_test_split
 import torch
 import pickle
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_and_preprocess_data(config):
+    logger.info(f"Loading data from {config['train_csv']}")
     df = pd.read_csv(config["train_csv"])
     sensor_encoder = LabelEncoder()
     df["sensor_idx"] = sensor_encoder.fit_transform(df["sensor_id"])
@@ -32,6 +36,7 @@ def load_and_preprocess_data(config):
         pickle.dump(sensor_encoder, f)
     with open("scaler.pkl", "wb") as f:
         pickle.dump(scaler, f)
+    logger.info("Data loaded and preprocessed.")
     return df, sensor_encoder, scaler
 
 def smooth_features(df, columns, window=3):
