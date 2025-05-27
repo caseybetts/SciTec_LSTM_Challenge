@@ -102,3 +102,29 @@ The script will:
 5. Evaluate the model on the validation set.
 6. Save the best model weights to model.pth.
 ```
+
+Inference
+To run inference on a test CSV file, use the inference.py script:
+
+Bash
+
+python inference.py --input <path_to_test_csv> --output <path_to_output_csv>
+The script will:
+
+1. Load the saved sensor encoder and scaler.
+2. Load and preprocess the test data.
+3. Load the trained model.
+4. Generate predictions for each time step in the test data.
+5. Save the predictions to a CSV file.
+
+6. File Descriptions
+
+- data.py: Contains functions for loading, preprocessing, and preparing the data for training and evaluation. Includes the TimeSeriesDataset class.
+- model.py: Defines the LSTMTimeStepClassifier model architecture.
+- train.py: Implements the training loop, evaluation logic, and baseline model comparison.
+- inference.py: Handles loading the trained model and generating predictions on new data.
+- config.py: (Not provided) This file should contain configuration parameters such as file paths, hyperparameters (e.g., seq_len, batch_size, hidden_size, learning_rate), and data preprocessing parameters (e.g., lower, upper quantiles). You'll need to create this file.
+- app.log: Log file for training and inference information.
+  sensor_encoder.pkl: Saved LabelEncoder object.
+- scaler.pkl: Saved StandardScaler object.
+- best_model.pt: Saved model weights.
