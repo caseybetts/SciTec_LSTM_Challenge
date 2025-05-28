@@ -207,3 +207,18 @@ python -m pytest --cov=. --cov-report=term
 pytest
 pytest-cov
 ```
+
+# 10. Citations
+
+1.  Recurrent Neural Networks for Sequence Learning, Zachary C. Lipton, John Berkowitz, Charles Elkan
+    June 5th, 2015
+    arXiv:1506.00019 [cs.LG]
+
+2.  Long Short-Term Memory (LSTM), Clearly Explained
+    @https://www.youtube.com/watch?v=YCzL96nL7j0
+
+3.  AI Tools:
+
+- ChatGPT 4.1
+- Claude Sonnet 4
+- Gemini 2.5 Flash
