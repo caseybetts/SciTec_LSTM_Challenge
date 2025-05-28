@@ -160,7 +160,7 @@ kubectl logs <pod-name>
 - model.py: Defines the LSTMTimeStepClassifier model architecture.
 - train.py: Implements the training loop, evaluation logic, and baseline model comparison.
 - inference.py: Handles loading the trained model and generating predictions on new data.
-- config.py: (Not provided) This file should contain configuration parameters such as file paths, hyperparameters (e.g., seq_len, batch_size, hidden_size, learning_rate), and data preprocessing parameters (e.g., lower, upper quantiles). You'll need to create this file.
+- config.py: This file contains configuration parameters such as file paths, hyperparameters (e.g., seq_len, batch_size, hidden_size, learning_rate), and data preprocessing parameters (e.g., lower, upper quantiles).
 - app.log: Log file for training and inference information.
 - sensor_encoder.pkl: Saved LabelEncoder object.
 - scaler.pkl: Saved StandardScaler object.
