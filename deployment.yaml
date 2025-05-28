@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scitec-lstm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scitec-lstm
+  template:
+    metadata:
+      labels:
+        app: scitec-lstm
+    spec:
+      containers:
+        - name: scitec-lstm
+          image: scitec-lstm:latest
+          command: ["python", "train.py"] # Change to inference.py as needed
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+      volumes:
+        - name: data-volume
+          hostPath:
+            path: /absolute/path/to/your/data # Change this to your local data path
+            type: Directory

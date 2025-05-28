@@ -76,7 +76,6 @@ The `train.py` script includes a baseline model for comparison:
 - PyTorch
 - Pandas
 - Scikit-learn
-- `config.py` (not provided, you'll need to create this with your configurations)
 
 You can install the necessary packages using pip:
 
@@ -90,8 +89,19 @@ pip install torch pandas scikit-learn
 
 To train the model, run the `train.py` script:
 
+Run Locally
+
 ```bash
 python train.py
+```
+
+Run in Kubernetes
+
+```bash
+kubectl apply -f deployment.yaml
+# If you have a service:
+kubectl apply -f service.yaml
+```
 
 The script will:
 
@@ -101,14 +111,14 @@ The script will:
 4. Train the model using the specified hyperparameters.
 5. Evaluate the model on the validation set.
 6. Save the best model weights to model.pth.
-```
 
 Inference
 To run inference on a test CSV file, use the inference.py script:
 
-Bash
-
+```bash
 python inference.py --input <path_to_test_csv> --output <path_to_output_csv>
+```
+
 The script will:
 
 1. Load the saved sensor encoder and scaler.
@@ -117,7 +127,7 @@ The script will:
 4. Generate predictions for each time step in the test data.
 5. Save the predictions to a CSV file.
 
-6. File Descriptions
+## 7. File Descriptions
 
 - data.py: Contains functions for loading, preprocessing, and preparing the data for training and evaluation. Includes the TimeSeriesDataset class.
 - model.py: Defines the LSTMTimeStepClassifier model architecture.
