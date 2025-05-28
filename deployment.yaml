@@ -22,5 +22,5 @@ spec:
       volumes:
         - name: data-volume
           hostPath:
-            path: /absolute/path/to/your/data # Change this to your local data path
+            path: /path/to/the/data # path to source data
             type: Directory

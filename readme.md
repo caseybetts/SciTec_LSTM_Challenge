@@ -128,6 +128,12 @@ The script will:
 4. Generate predictions for each time step in the test data.
 5. Save the predictions to a CSV file.
 
+To Build A Docker Image
+
+```bash
+docker build -t <image_name>:latest -f dockerfile.txt
+```
+
 ## 7. File Descriptions
 
 - data.py: Contains functions for loading, preprocessing, and preparing the data for training and evaluation. Includes the TimeSeriesDataset class.
