@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a time series classification model to predict the reentry phase of an object based on sensor data. The model utilizes an LSTM network with sensor ID embeddings to effectively capture temporal dependencies and incorporate categorical information.
+This project implements a time series classification model to predict the reentry phase of a missile based on simulated sensor data. The model utilizes an LSTM network with sensor ID embeddings to effectively classify whether a missile is in the reentry phase.
 
 ## Table of Contents
 
@@ -32,7 +32,7 @@ The model is an `LSTMTimeStepClassifier` built using PyTorch. It consists of the
 
 ### Rationale
 
-- **LSTMs for Time Series:** LSTMs are well-suited for time series data because they can learn long-range dependencies. In this problem, the reentry phase is likely determined by a sequence of changes in sensor readings over time (e.g., a sustained decrease in altitude).
+- **LSTMs for Time Series:** LSTMs are well-suited for time series data because they can learn long-range dependencies while avoiding issues of exploding or vanishing gradient.
 - **Sensor ID Embeddings:** Different sensors might have unique characteristics or biases. Embedding sensor IDs allows the model to learn these characteristics and improve accuracy.
 - **Time Step Classification:** The model predicts the reentry phase at each time step, providing a more granular understanding of when the transition occurs.
 
@@ -55,7 +55,6 @@ The `data.py` module handles data loading and preprocessing. The following steps
 - **LSTM Hidden Size (`hidden_size`) and Number of Layers (`num_layers`):** Larger hidden sizes and more layers increase model capacity but also increase the risk of overfitting and require more computation.
 - **Sensor Embedding Dimension (`sensor_embed_dim`):** Larger embedding dimensions can capture more complex sensor-specific information but increase the number of model parameters.
 - **Data Size:** The code uses batching and windowing to handle potentially large datasets. However, very large datasets might require distributed training or more sophisticated data loading strategies.
-- **Hardware:** The code is written to utilize GPUs if available, which significantly speeds up training. For very large models or datasets, specialized hardware (e.g., TPUs) might be necessary.
 - **Inference Speed:** Inference speed is affected by the model size and sequence length. For real-time applications, model optimization techniques (e.g., quantization, pruning) might be needed.
 
 ## 4. Comparison to Baseline Performance
@@ -81,7 +80,7 @@ The `train.py` script includes a baseline model for comparison:
 You can install the necessary packages using pip:
 
 ```bash
-pip install torch pandas scikit-learn
+pip install torch pandas scikit-learn numpy
 ```
 
 ## 6. Usage
@@ -142,6 +141,6 @@ docker build -t <image_name>:latest -f dockerfile.txt
 - inference.py: Handles loading the trained model and generating predictions on new data.
 - config.py: (Not provided) This file should contain configuration parameters such as file paths, hyperparameters (e.g., seq_len, batch_size, hidden_size, learning_rate), and data preprocessing parameters (e.g., lower, upper quantiles). You'll need to create this file.
 - app.log: Log file for training and inference information.
-  sensor_encoder.pkl: Saved LabelEncoder object.
+- sensor_encoder.pkl: Saved LabelEncoder object.
 - scaler.pkl: Saved StandardScaler object.
 - best_model.pt: Saved model weights.
