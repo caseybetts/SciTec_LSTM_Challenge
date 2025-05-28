@@ -76,6 +76,7 @@ The `train.py` script includes a baseline model for comparison:
 - PyTorch
 - Pandas
 - Scikit-learn
+- Numpy
 
 You can install the necessary packages using pip:
 
