@@ -106,7 +106,7 @@ The script will:
 
 ### Inference
 
-To run inference on a test CSV file, use the inference.py script:
+To run inference on a test CSV file, use the inference.py script. Unlabled test data is located here: `/data/test.csv`
 
 ```bash
 python inference.py --input <path_to_test_csv> --output <path_to_output_csv>
