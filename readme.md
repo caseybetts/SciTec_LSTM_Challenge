@@ -14,7 +14,9 @@ This project implements a time series classification model to predict the reentr
 6.  Usage
     - Training
     - Inference
-7.  File Descriptions
+7.  Using Docker And Kubernetes
+8.  File Descriptions
+9.  Running Unit Tests
 
 ## 1. Model Architecture and Rationale
 
@@ -89,18 +91,8 @@ pip install torch pandas scikit-learn numpy
 
 To train the model, run the `train.py` script:
 
-Run Locally
-
 ```bash
 python train.py
-```
-
-Run in Kubernetes
-
-```bash
-kubectl apply -f deployment.yaml
-# If you have a service:
-kubectl apply -f service.yaml
 ```
 
 The script will:
@@ -112,7 +104,8 @@ The script will:
 5. Evaluate the model on the validation set.
 6. Save the best model weights to model.pth.
 
-Inference
+### Inference
+
 To run inference on a test CSV file, use the inference.py script:
 
 ```bash
@@ -127,13 +120,41 @@ The script will:
 4. Generate predictions for each time step in the test data.
 5. Save the predictions to a CSV file.
 
-To Build A Docker Image
+## 7. Using Docker And Kubernetes
+
+### Build A Docker Image
+
+Run this command in the root directory
 
 ```bash
-docker build -t <image_name>:latest -f dockerfile.txt
+docker build -t <image_name>:latest -f Dockerfile.txt .
 ```
 
-## 7. File Descriptions
+### Load To Minikube
+
+Start minikube and load the docker image into minikube using this command
+
+```bash
+minikube start
+minikube image load <image_name>:latest
+```
+
+### Deply To Kubernetes
+
+In the `deployment.yaml` file, change the volumes host path (`volumes:hostPath:path`) to the path of the root directory of the project. Then run:
+
+```bash
+kubectl apply -f deployment.yaml
+```
+
+Check your deployment:
+
+```bash
+kubectl get pods
+kubectl logs <pod-name>
+```
+
+## 8. File Descriptions
 
 - data.py: Contains functions for loading, preprocessing, and preparing the data for training and evaluation. Includes the TimeSeriesDataset class.
 - model.py: Defines the LSTMTimeStepClassifier model architecture.
@@ -144,3 +165,45 @@ docker build -t <image_name>:latest -f dockerfile.txt
 - sensor_encoder.pkl: Saved LabelEncoder object.
 - scaler.pkl: Saved StandardScaler object.
 - best_model.pt: Saved model weights.
+
+## 9. Running Unit Tests
+
+This project includes unit tests to ensure the correctness of the core components, including data processing, model architecture, and training logic. The tests are located in the `tests/` directory and cover:
+
+- **Data Processing:** Validates window creation, preprocessing, and dataset loading.
+- **Model:** Checks the LSTM model's forward pass and output shapes.
+- **Training:** Verifies training loop components and loss calculations.
+
+### Running Tests (Windows)
+
+A batch script `run_tests.bat` is provided for convenience. It will run all tests and display a coverage report in the terminal.
+
+To run the tests, simply execute:
+
+```bash
+run_tests.bat
+```
+
+This will:
+
+- Run all unit tests using `pytest`
+- Show a code coverage summary in the terminal
+- Pause at the end so you can review the results
+
+### Manual Test Execution
+
+Alternatively, you can run the tests manually with:
+
+```bash
+python -m pytest --cov=. --cov-report=term
+```
+
+### Test Output
+
+- All test results and coverage information will be displayed in your terminal.
+- Ensure you have `pytest` and `pytest-cov` installed (add them to `requirements.txt` if needed):
+
+```txt
+pytest
+pytest-cov
+```
